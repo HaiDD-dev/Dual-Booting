@@ -1,6 +1,6 @@
-# Guide to Dual Booting Windows and Arch Linux (UEFI)
+# Guide to Dual Booting Windows and Arch Linux (UEFI) with GRUB
 
-This is a detailed guide based on your requests, supplemented with necessary steps to ensure a stable and complete dual boot system.
+This is a detailed guide based on your requests, modified to use GRUB as the bootloader, and supplemented with necessary steps to ensure a stable and complete dual boot system.
 
 ---
 
@@ -121,7 +121,7 @@ This is a command-line interface tool that makes the installation process much e
         * Select the drive you want to install Arch on (e.g., `/dev/sda`).
         * **IMPORTANT (for Dual Boot):** The installer will ask about the EFI partition. It should automatically detect the one from Windows. **SELECT** that partition and **assign it to the mount point `/boot`** (or `/efi`). **DO NOT FORMAT** this partition. `archinstall` usually handles this correctly; you just need to confirm.
         * When asked "Would you like to use a default partition layout?", select **`btrfs`** as the filesystem.
-    * **`Bootloader`**: Select **`systemd-boot`**. This is the best and simplest choice for a UEFI dual boot setup.
+    * **`Bootloader`**: Select **`grub`**.
     * **`Hostname`**: Set a name for your computer, e.g., `arch-pc`.
     * **`Root password`**: Set a password for the `root` account.
     * **`User account`**: Select **`Add a user`**, enter your desired username and password. Make sure to select **Yes** when asked, "Should this user be a superuser (sudo)?".
@@ -137,8 +137,9 @@ This is a command-line interface tool that makes the installation process much e
     * **`Kernels`**: Select **`linux`** (default).
     * **`Additional packages`**: Add any extra packages you need, separated by spaces. Suggestions:
         ```
-        git nano vim firefox network-manager-applet btop
+        git nano vim firefox network-manager-applet btop os-prober
         ```
+        *(Note: We add `os-prober` here to detect Windows later).*
     * **`Network configuration`**: Select **`Use NetworkManager`**.
     * **`Timezone`**: Type `Asia/Ho_Chi_Minh`.
 
@@ -152,19 +153,32 @@ This is a command-line interface tool that makes the installation process much e
 
 You are now inside your newly installed Arch system.
 
-1.  **Update the entire system:**
+1.  **Configure GRUB to Detect Windows:**
+    * Open the GRUB configuration file with nano:
+        ```bash
+        nano /etc/default/grub
+        ```
+    * Find the line `#GRUB_DISABLE_OS_PROBER=false` and remove the `#` at the beginning to uncomment it. This allows GRUB to look for other operating systems.
+    * Save the file and exit nano (Press `Ctrl + X`, then `Y`, then `Enter`).
+    * Now, regenerate the GRUB configuration file:
+        ```bash
+        grub-mkconfig -o /boot/grub/grub.cfg
+        ```
+    * You should see output indicating that it found "Windows Boot Manager". This confirms it worked.
+
+2.  **Update the entire system:**
     ```bash
     pacman -Syyu
     ```
-2.  **Install other necessary applications:**
+3.  **Install other necessary applications:**
     ```bash
     pacman -S gcc vlc
     ```
-3.  Exit the chroot environment:
+4.  Exit the chroot environment:
     ```bash
     exit
     ```
-4.  Reboot the system:
+5.  Reboot the system:
     ```bash
     reboot
     ```
@@ -174,7 +188,7 @@ You are now inside your newly installed Arch system.
 
 ### Step 7: First Boot and Environment Setup
 
-1.  After rebooting, you should see the `systemd-boot` menu. From here, you can choose **Arch Linux** or **Windows Boot Manager**. Select **Arch Linux** to continue.
+1.  After rebooting, you should see the **GRUB menu**. From here, you can choose **Arch Linux** or **Windows Boot Manager**. Select **Arch Linux** to continue.
 2.  Log in with the user account you created.
 3.  If Hyprland doesn't start automatically, type `Hyprland` in the terminal and press Enter.
 4.  **Run the dotfiles setup script (As you requested):**
@@ -214,4 +228,4 @@ You are now inside your newly installed Arch system.
     * Search for `Unikey` in the list and click **Add**.
     * You can now switch between English and Vietnamese (Unikey) using the hotkey (usually `Ctrl + Space`).
 
-Congratulations! You have successfully dual-booted Windows and Arch Linux with the Hyprland environment and Vietnamese input method.
+Congratulations! You have successfully dual-booted Windows and Arch Linux with the Hyprland environment and Vietnamese input method using GRUB.
